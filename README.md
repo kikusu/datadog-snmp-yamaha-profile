@@ -1,0 +1,1 @@
+# datadog-snmp-yamaha-profile
