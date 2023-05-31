@@ -1,0 +1,2 @@
+pysnmplib==5.0.21
+snmpclitools==0.6.4
