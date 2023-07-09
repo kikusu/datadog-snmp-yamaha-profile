@@ -13,8 +13,8 @@ if __name__ == "__main__":
 
     r = subprocess.run(
         shlex.split(
-            "mibdump --destination-directory ./src/yamaha-private-mib/ "
+            "mibdump --destination-directory ./src/yamaha-private-mib-json/ "
             "--destination-format json "
             f"--mib-searcher {default_mib_path}:./src/yamaha-private-mib {mibs}"
-            ),
+        ),
     )
