@@ -15,7 +15,7 @@ dst_dir = pathlib.Path("/opt/datadog-agent/etc/conf.d/snmp.d/profiles/")
 # https://pkg.go.dev/github.com/DataDog/datadog-agent/pkg/collector/corechecks/snmp/internal/checkconfig
 
 
-def load_mib(mib_name: str, field: str = None) -> dict:
+def load_mib(mib_name: str, field: str | None = None) -> dict:
     mib = json.load((src_dir / f"{mib_name}.json").open())
 
     if field:
@@ -40,36 +40,63 @@ def model_list() -> dict:
     }
 
 
-def create_device_meta() -> dict:
-    field: dict[str, any] = {"vendor": {"value": "yamaha"}}
+def create_device_meta() -> entity.MetadataResource:
+    fields = {}
+    fields["vendor"] = entity.MetadataField(value="yamaha")
 
-    field["description"] = entity.Symbol("1.3.6.1.2.1.1.1", "sysDescr").to_json()
-    field["sys_object_id"] = entity.Symbol("1.3.6.1.2.1.1.2", "sysObjectID").to_json()
-    field["model"] = entity.Symbol("1.3.6.1.2.1.1.2", "sysObjectID", mapping=model_list()).to_json()
-    return {"field": field}
+    fields["description"] = entity.MetadataField(
+        symbol=entity.Symbol("1.3.6.1.2.1.1.1", "sysDescr")
+    )
+    fields["sys_object_id"] = entity.MetadataField(
+        symbol=entity.Symbol("1.3.6.1.2.1.1.2", "sysObjectID")
+    )
+    fields["model"] = entity.MetadataField(
+        symbol=entity.Symbol(
+            "1.3.6.1.2.1.1.1", "sysDescr", match_pattern=r"([^\s]+) ", match_value="$1"
+        )
+    )
+    return entity.MetadataResource(fields=fields)
 
 
-def create_interface_meta() -> dict:
-    field = {}
-    field["name"] = entity.Symbol("1.3.6.1.2.1.2.2.1.2", " ifDescr").to_json()
-    field["admin_status"] = entity.Symbol("1.3.6.1.2.1.2.2.1.7", "ifAdminStatus").to_json()
-    field["oper_status"] = entity.Symbol("1.3.6.1.2.1.2.2.1.8", "ifOperStatus").to_json()
+def create_interface_meta() -> entity.MetadataResource:
+    fields = {}
+    fields["name"] = entity.MetadataField(symbol=entity.Symbol("1.3.6.1.2.1.2.2.1.2", "ifDescr"))
+    fields["description"] = entity.MetadataField(
+        symbol=entity.Symbol("1.3.6.1.2.1.2.2.1.2", "ifDescr")
+    )
 
+    # fields["admin_status"] = entity.Symbol("1.3.6.1.2.1.2.2.1.7", "ifAdminStatus")
+    # fields["oper_status"] = entity.Symbol("1.3.6.1.2.1.2.2.1.8", "ifOperStatus")
     id_tags = [
-        {"tag": "interface", "column": entity.Symbol("1.3.6.1.2.1.2.2.1.2", "ifDescr").to_json()}
+        entity.MetadataTag(tag="interface", column=entity.Symbol("1.3.6.1.2.1.2.2.1.2", "ifDescr"))
     ]
 
-    return {"field": field, "id_tags": id_tags}
+    return entity.MetadataResource(fields=fields, id_tags=id_tags)
+
+
+def create_ip_adresses_meta() -> dict:
+    fields = {}
+    fields["if_index"] = entity.MetadataField(
+        symbol=entity.Symbol("1.3.6.1.2.1.4.20.1.2", "ipAdEntIfIndex")
+    ).to_json()
+    fields["netmask"] = entity.MetadataField(
+        symbol=entity.Symbol("1.3.6.1.2.1.4.20.1.3", "ipAdEntNetMask")
+    ).to_json()
+
+    return {"fields": fields}
 
 
 def create_base():
     yaml.dump(
-        {
-            "metadata": {
-                "device": create_device_meta(),
-                "interface": create_interface_meta(),
+        entity.entity_to_dict(
+            {
+                "metadata": {
+                    "device": create_device_meta(),
+                    "interface": create_interface_meta(),
+                    # "ip_addresses": create_ip_adresses_meta(),
+                }
             }
-        },
+        ),
         (dst_dir / "_yamaha_base.yml").open("wt"),
         default_flow_style=False,
     )

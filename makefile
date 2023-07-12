@@ -32,3 +32,9 @@ snmp_n:
 	$(DEVICE_IP) .1.3.6.1.4.1.1182 >> snmp_n.txt
 
 snmp_m: snmp_n snmp
+
+snmpwalk:
+	snmpwalk -v 2c -On -c public \
+	-M $$(net-snmp-config --default-mibdirs):$$(pwd)/src/yamaha-private-mib \
+	-m $(MIBS) \
+	$(DEVICE_IP) $(TARGET)
