@@ -23,7 +23,7 @@ def load_mib(mib_name: str, field: str | None = None) -> dict:
     return mib
 
 
-def find_mib(field: str) -> dict:
+def find_mib(field: str) -> dict | None:
     for f in src_dir.glob("*.json"):
         mib = json.load(f.open())
         if field in mib:
@@ -65,8 +65,12 @@ def create_interface_meta() -> entity.MetadataResource:
         symbol=entity.Symbol("1.3.6.1.2.1.2.2.1.2", "ifDescr")
     )
 
-    # fields["admin_status"] = entity.Symbol("1.3.6.1.2.1.2.2.1.7", "ifAdminStatus")
-    # fields["oper_status"] = entity.Symbol("1.3.6.1.2.1.2.2.1.8", "ifOperStatus")
+    fields["admin_status"] = entity.MetadataField(
+        symbol=entity.Symbol("1.3.6.1.2.1.2.2.1.7", "ifAdminStatus")
+    )
+    fields["oper_status"] = entity.MetadataField(
+        symbol=entity.Symbol("1.3.6.1.2.1.2.2.1.8", "ifOperStatus")
+    )
     id_tags = [
         entity.MetadataTag(tag="interface", column=entity.Symbol("1.3.6.1.2.1.2.2.1.2", "ifDescr"))
     ]
