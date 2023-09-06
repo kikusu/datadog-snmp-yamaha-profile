@@ -5,6 +5,7 @@ SPACE := $(EMPTY) $(EMPTY)
 MIBS = $(subst  $(SPACE),:,$(MIB_FILES))
 
 DEVICE_IP = 192.168.100.1
+export PYTHONPATH := $(shell pwd)
 
 init:
 	pip install -r requirements.txt
@@ -15,10 +16,10 @@ snmp:
 	-m $(MIBS) \
 	$(DEVICE_IP) > snmp.txt
 
-	snmpwalk -v 2c -c public \
-	-M $$(net-snmp-config --default-mibdirs):$$(pwd)/src/yamaha-private-mib \
-	-m $(MIBS) \
-	$(DEVICE_IP) .1.3.6.1.4.1.1182 >> snmp.txt
+	# snmpwalk -v 2c -c public \
+	# -M $$(net-snmp-config --default-mibdirs):$$(pwd)/src/yamaha-private-mib \
+	# -m $(MIBS) \
+	# $(DEVICE_IP) .1.3.6.1.4.1.1182 >> snmp.txt
 
 snmp_n:
 	snmpwalk -v 2c -On -c public \
@@ -26,10 +27,10 @@ snmp_n:
 	-m $(MIBS) \
 	$(DEVICE_IP) > snmp_n.txt
 
-	snmpwalk -v 2c -On -c public \
-	-M $$(net-snmp-config --default-mibdirs):$$(pwd)/src/yamaha-private-mib \
-	-m $(MIBS) \
-	$(DEVICE_IP) .1.3.6.1.4.1.1182 >> snmp_n.txt
+	# snmpwalk -v 2c -On -c public \
+	# -M $$(net-snmp-config --default-mibdirs):$$(pwd)/src/yamaha-private-mib \
+	# -m $(MIBS) \
+	# $(DEVICE_IP) .1.3.6.1.4.1.1182 >> snmp_n.txt
 
 snmp_m: snmp_n snmp
 
@@ -38,3 +39,9 @@ snmpwalk:
 	-M $$(net-snmp-config --default-mibdirs):$$(pwd)/src/yamaha-private-mib \
 	-m $(MIBS) \
 	$(DEVICE_IP) $(TARGET)
+
+build:
+	python scripts/create_yml.py;
+
+test: build
+	datadog-agent check snmp -l debug --table
