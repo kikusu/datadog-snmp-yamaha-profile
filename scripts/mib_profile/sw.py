@@ -3,6 +3,59 @@ import yaml
 from scripts.mib_profile import config, entity, mib_util
 
 
+def interface_metrics() -> list:
+    interface_tag = [
+        entity.MetricTagConfig("interface", column=entity.Symbol("1.3.6.1.2.1.2.2.1.2", "ifDescr")),
+        entity.MetricTagConfig(
+            "interface_idx",
+            column=entity.Symbol("1.3.6.1.2.1.2.2.1.1", "ifIndex"),
+        ),
+        entity.MetricTagConfig(
+            "interface_alias",
+            column=entity.Symbol("1.3.6.1.2.1.31.1.1.1.18", "ifAlias"),
+        ),
+    ]
+    return [
+        entity.TableMetricsConfig(
+            table=entity.Symbol("1.3.6.1.2.1.2.2", "ifTable"),
+            symbols=[
+                entity.Symbol("1.3.6.1.2.1.2.2.1.5", "ifSpeed"),
+                entity.Symbol("1.3.6.1.2.1.2.2.1.7", "ifAdminStatus"),
+                entity.Symbol("1.3.6.1.2.1.2.2.1.8", "ifOperStatus"),
+            ],
+            metric_tags=interface_tag,
+        ),
+        entity.TableMetricsConfig(
+            table=entity.Symbol("1.3.6.1.2.1.2.2", "ifTable"),
+            symbols=[
+                entity.Symbol("1.3.6.1.2.1.2.2.1.13", "ifInDiscards"),
+                entity.Symbol("1.3.6.1.2.1.2.2.1.14", "ifInErrors"),
+                entity.Symbol("1.3.6.1.2.1.2.2.1.19", "ifOutDiscards"),
+                entity.Symbol("1.3.6.1.2.1.2.2.1.20", "ifOutErrors"),
+            ],
+            metric_tags=interface_tag,
+            metric_type=entity.ProfileMetricType.monotonic_count_and_rate,
+        ),
+        entity.TableMetricsConfig(
+            table=entity.Symbol("1.3.6.1.2.1.2.2", "ifTable"),
+            symbols=[
+                entity.Symbol("1.3.6.1.2.1.2.2.1.9", "ifLastChange"),
+            ],
+            metric_tags=interface_tag,
+            metric_type=entity.ProfileMetricType.monotonic_count,
+        ),
+        entity.TableMetricsConfig(
+            table=entity.Symbol(" 1.3.6.1.2.1.31.1.1", "ifXTable"),
+            symbols=[
+                entity.Symbol("1.3.6.1.2.1.31.1.1.1.6", "ifHCInOctets"),
+                entity.Symbol("1.3.6.1.2.1.31.1.1.1.10", "ifHCOutOctets"),
+            ],
+            metric_tags=interface_tag,
+            metric_type=entity.ProfileMetricType.monotonic_count_and_rate,
+        ),
+    ]
+
+
 def create_yamaha_sw():
     path = config.DST_DIR / "yamaha_sw.yml"
     yaml.dump(
@@ -23,7 +76,8 @@ def create_yamaha_sw():
                     entity.MetricsConfig(
                         symbol=mib_util.find_mib_symbol("yshMemorySize", name="memory.total")
                     ),
-                ],
+                ]
+                + interface_metrics(),
             }
         ),
         path.open("wt"),
