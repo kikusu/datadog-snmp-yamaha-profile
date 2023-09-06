@@ -23,13 +23,24 @@ def load_mib(mib_name: str, field: str | None = None) -> dict:
     return mib
 
 
-def find_mib(field: str) -> dict | None:
+def find_mib(field: str) -> dict:
     for f in src_dir.glob("*.json"):
         mib = json.load(f.open())
         if field in mib:
             return mib[field]
 
-    return None
+    raise KeyError(field)
+
+
+def find_mib_symbol(field: str, **kwargs) -> entity.Symbol:
+    for f in src_dir.glob("*.json"):
+        mib = json.load(f.open())
+        if field in mib:
+            kwargs["OID"] = mib[field]["oid"]
+            kwargs["name"] = kwargs.get("name", field)
+            return entity.Symbol(**kwargs)
+
+    raise KeyError(field)
 
 
 def model_list() -> dict:
@@ -55,6 +66,13 @@ def create_device_meta() -> entity.MetadataResource:
             "1.3.6.1.2.1.1.1", "sysDescr", match_pattern=r"([^\s]+) ", match_value="$1"
         )
     )
+    fields["os_version"] = entity.MetadataField(
+        symbols=[
+            find_mib_symbol("ysfRevision", match_pattern=r"([^\s]+ Rev[\d.]+)", match_value="$1"),
+            find_mib_symbol("yrfRevision", match_pattern=r"([^\s]+ Rev[\d.]+)", match_value="$1"),
+        ]
+    )
+
     return entity.MetadataResource(fields=fields)
 
 
@@ -91,19 +109,87 @@ def create_ip_adresses_meta() -> dict:
 
 
 def create_base():
+    path = dst_dir / "_yamaha_base.yml"
     yaml.dump(
         entity.entity_to_dict(
             {
                 "metadata": {
                     "device": create_device_meta(),
                     "interface": create_interface_meta(),
-                    # "ip_addresses": create_ip_adresses_meta(),
                 }
             }
         ),
-        (dst_dir / "_yamaha_base.yml").open("wt"),
+        path.open("wt"),
         default_flow_style=False,
     )
+
+    print("Save: ", path)
+
+
+def create_yamaha_rt():
+    path = dst_dir / "yamaha_rt.yml"
+    yaml.dump(
+        entity.entity_to_dict(
+            {
+                "extends": [
+                    "_yamaha_base.yml",
+                    # "_generic-if.yaml"
+                ],
+                "sysobjectid": "1.3.6.1.4.1.1182.2.*",
+                "metrics": [
+                    entity.MetricsConfig(
+                        symbol=find_mib_symbol("yrhCpuUtil1min", name="cpu.usage")
+                    ),
+                    entity.MetricsConfig(
+                        symbol=find_mib_symbol("yrhMemoryUtil", name="memory.usage")
+                    ),
+                    entity.MetricsConfig(
+                        symbol=find_mib_symbol("yrhMemorySize", name="memory.total")
+                    ),
+                    entity.TableMetricsConfig(
+                        table=find_mib_symbol("yrhMultiCpuTable"),
+                        symbols=[find_mib_symbol("yrhMultiCpuUtil1min")],
+                        metric_tags=[entity.MetricTagConfig("cpu", index=1)],
+                        metric_type=entity.ProfileMetricType.gauge,
+                    ),
+                ],
+            }
+        ),
+        path.open("wt"),
+        default_flow_style=False,
+    )
+
+    print("Save: ", path)
+
+
+def create_yamaha_sw():
+    path = dst_dir / "yamaha_sw.yml"
+    yaml.dump(
+        entity.entity_to_dict(
+            {
+                "extends": [
+                    "_yamaha_base.yml",
+                    # "_generic-if.yaml"
+                ],
+                "sysobjectid": "1.3.6.1.4.1.1182.3.*",
+                "metrics": [
+                    entity.MetricsConfig(
+                        symbol=find_mib_symbol("yshCpuUtil1min", name="cpu.usage")
+                    ),
+                    entity.MetricsConfig(
+                        symbol=find_mib_symbol("yshMemoryUtil", name="memory.usage")
+                    ),
+                    entity.MetricsConfig(
+                        symbol=find_mib_symbol("yshMemorySize", name="memory.total")
+                    ),
+                ],
+            }
+        ),
+        path.open("wt"),
+        default_flow_style=False,
+    )
+
+    print("Save: ", path)
 
 
 if __name__ == "__main__":
@@ -111,3 +197,5 @@ if __name__ == "__main__":
     print("dst_dir: ", dst_dir)
 
     create_base()
+    create_yamaha_rt()
+    create_yamaha_sw()
