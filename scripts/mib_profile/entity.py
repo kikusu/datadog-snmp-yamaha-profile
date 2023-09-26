@@ -69,6 +69,7 @@ class MetricTagConfig(JsonDataClass):
     tag: str
     column: Symbol | None = None
     index: int | None = None
+    mapping: dict[str, str] | None = None
 
 
 @dataclasses.dataclass

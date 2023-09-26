@@ -1,6 +1,6 @@
 import yaml
 
-from scripts.mib_profile import config, entity, mib_util
+from scripts.mib_profile import common_symbol, config, entity, mib_util
 
 
 def interface_metrics() -> list:
@@ -14,6 +14,8 @@ def interface_metrics() -> list:
             "interface_alias",
             column=entity.Symbol("1.3.6.1.2.1.31.1.1.1.18", "ifAlias"),
         ),
+        common_symbol.CommonMetricTagConfig.interface_type,
+        entity.MetricTagConfig("snmp_host", column=entity.Symbol("1.3.6.1.2.1.1.5.0", "sysName")),
     ]
     return [
         entity.TableMetricsConfig(
@@ -45,13 +47,21 @@ def interface_metrics() -> list:
             metric_type=entity.ProfileMetricType.monotonic_count,
         ),
         entity.TableMetricsConfig(
-            table=entity.Symbol(" 1.3.6.1.2.1.31.1.1", "ifXTable"),
+            table=entity.Symbol("1.3.6.1.2.1.31.1.1", "ifXTable"),
             symbols=[
                 entity.Symbol("1.3.6.1.2.1.31.1.1.1.6", "ifHCInOctets"),
                 entity.Symbol("1.3.6.1.2.1.31.1.1.1.10", "ifHCOutOctets"),
             ],
             metric_tags=interface_tag,
             metric_type=entity.ProfileMetricType.monotonic_count_and_rate,
+        ),
+        entity.TableMetricsConfig(
+            table=entity.Symbol("1.3.6.1.2.1.31.1.1", "ifXTable"),
+            symbols=[
+                entity.Symbol("1.3.6.1.2.1.31.1.1.1.15", "ifHighSpeed"),
+            ],
+            metric_tags=interface_tag,
+            metric_type=entity.ProfileMetricType.gauge,
         ),
     ]
 
@@ -76,6 +86,7 @@ def create_yamaha_sw():
                     entity.MetricsConfig(
                         symbol=mib_util.find_mib_symbol("yshMemorySize", name="memory.total")
                     ),
+                    entity.Symbol("1.3.6.1.2.1.2.1.0", "ifNumber"),
                 ]
                 + interface_metrics(),
             }
