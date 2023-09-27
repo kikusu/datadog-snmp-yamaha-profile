@@ -50,6 +50,14 @@ def interface_metrics() -> list:
             metric_tags=interface_tag,
             metric_type=entity.ProfileMetricType.monotonic_count_and_rate,
         ),
+        entity.TableMetricsConfig(
+            table=entity.Symbol("1.3.6.1.2.1.31.1.1", "ifXTable"),
+            symbols=[
+                entity.Symbol("1.3.6.1.2.1.31.1.1.1.15", "ifHighSpeed"),
+            ],
+            metric_tags=interface_tag,
+            metric_type=entity.ProfileMetricType.gauge,
+        ),
     ]
 
 

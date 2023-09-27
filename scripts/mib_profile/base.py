@@ -66,6 +66,13 @@ def create_base():
                     "interface": create_interface_meta(),
                 },
                 "metrics": [],
+                "metric_tags": [
+                    {
+                        "OID": "1.3.6.1.2.1.1.5.0",
+                        "symbol": "sysName",
+                        "tag": "snmp_host",
+                    },
+                ],
             }
         ),
         path.open("wt"),

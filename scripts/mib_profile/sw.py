@@ -15,7 +15,6 @@ def interface_metrics() -> list:
             column=entity.Symbol("1.3.6.1.2.1.31.1.1.1.18", "ifAlias"),
         ),
         common_symbol.CommonMetricTagConfig.interface_type,
-        entity.MetricTagConfig("snmp_host", column=entity.Symbol("1.3.6.1.2.1.1.5.0", "sysName")),
     ]
     return [
         entity.TableMetricsConfig(

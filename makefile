@@ -43,5 +43,5 @@ snmpwalk:
 build:
 	python scripts/create_yml.py;
 
-test: build
-	datadog-agent check snmp -l debug --table
+test:
+	datadog-agent check snmp --table --check-rate -l debug

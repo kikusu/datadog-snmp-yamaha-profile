@@ -1,26 +1,9 @@
-device:
-  vendor: "yamaha"
+extends:
+- _yamaha_base.yml
+#- _generic-if.yaml
 
 sysobjectid: 1.3.6.1.4.1.1182.*
 
-
-metadata:
-  device:
-    fields:
-      model:
-        symbol:
-          OID: 1.3.6.1.2.1.1.1
-          name: sysDescr
-          match_pattern: '([^\s]+) '
-          match_value: '$1'
-      description:
-        symbol:
-          OID: 1.3.6.1.2.1.1.1
-          name: sysDescr
-      sys_object_id:
-        symbol:
-          OID: 1.3.6.1.2.1.1.2.0
-          name: sysObjectID
 
 metrics:
 # yrhCpuUtil1min
@@ -35,9 +18,22 @@ metrics:
     OID: 1.3.6.1.4.1.1182.2.1.4
     name: memory.usage
 
-# yrhMemorySize
+# # yrhMemorySize
 - MIB: YAMAHA-RT-HARDWARE
   symbol:
     OID: 1.3.6.1.4.1.1182.2.1.4
     name: memory.total
 
+# - MIB: IF-MIB
+#   table:
+#     OID: 1.3.6.1.2.1.2.2
+#     name: ifTable
+#   forced_type: flag_stream
+#   symbols:
+#   - OID: 1.3.6.1.2.1.2.2.1.7
+#     name: ifAdminStatus
+#   metric_tags:
+#   - column:
+#       OID: 1.3.6.1.2.1.2.2.1.2
+#       name: ifDescr
+#     tag: interface
