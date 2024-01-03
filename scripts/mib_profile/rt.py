@@ -80,7 +80,7 @@ def create_yamaha_rt():
         entity.entity_to_dict(
             {
                 "extends": [
-                    "_yamaha_base.yml",
+                    "yamaha_base.yml",
                 ],
                 "metadata": {
                     "interface": create_interface_meta(),

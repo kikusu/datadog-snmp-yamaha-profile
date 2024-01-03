@@ -29,4 +29,4 @@ jobs:
 
       - env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create -t "${{ github.ref_name }}" dst/*.yaml --generate-notes
+        run: gh release create "${{ github.ref_name }}" dst/*.yaml --generate-notes
