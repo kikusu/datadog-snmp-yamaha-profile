@@ -56,7 +56,7 @@ def create_interface_meta() -> entity.MetadataResource:
 
 
 def create_base():
-    path = config.DST_DIR / "_yamaha_base.yaml"
+    path = config.DST_DIR / "yamaha_base.yaml"
 
     yaml.dump(
         entity.entity_to_dict(
