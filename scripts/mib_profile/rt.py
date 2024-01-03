@@ -1,14 +1,27 @@
 import yaml
 
-from scripts.mib_profile import common_symbol, config, entity, mib_util
+from scripts.mib_profile import base, common_symbol, config, entity, mib_util
+
+
+def create_interface_meta() -> entity.MetadataResource:
+    fields = {}
+    fields["name"] = entity.MetadataField(symbol=common_symbol.IfTable.ifDescr)
+    fields["description"] = entity.MetadataField(symbol=common_symbol.IfTable.ifDescr)
+
+    fields["admin_status"] = entity.MetadataField(symbol=common_symbol.IfTable.ifAdminStatus)
+    fields["oper_status"] = entity.MetadataField(symbol=common_symbol.IfTable.ifOperStatus)
+    id_tags = [entity.MetadataTag(tag="interface", column=common_symbol.IfTable.ifDescr)]
+
+    return entity.MetadataResource(fields=fields, id_tags=id_tags)
 
 
 def interface_metrics() -> list:
+    return []
     interface_tag = [
-        entity.MetricTagConfig("interface", column=entity.Symbol("1.3.6.1.2.1.2.2.1.2", "ifDescr")),
+        entity.MetricTagConfig("interface", column=mib_util.find_mib_symbol("yrIfDescr")),
         entity.MetricTagConfig(
             "interface_idx",
-            column=entity.Symbol("1.3.6.1.2.1.2.2.1.1", "ifIndex"),
+            column=mib_util.find_mib_symbol("yrIfIndex"),
         ),
         common_symbol.CommonMetricTagConfig.interface_type,
     ]
@@ -22,54 +35,56 @@ def interface_metrics() -> list:
             ],
             metric_tags=interface_tag,
         ),
-        entity.TableMetricsConfig(
-            table=entity.Symbol("1.3.6.1.2.1.2.2", "ifTable"),
-            symbols=[
-                entity.Symbol("1.3.6.1.2.1.2.2.1.13", "ifInDiscards"),
-                entity.Symbol("1.3.6.1.2.1.2.2.1.14", "ifInErrors"),
-                entity.Symbol("1.3.6.1.2.1.2.2.1.19", "ifOutDiscards"),
-                entity.Symbol("1.3.6.1.2.1.2.2.1.20", "ifOutErrors"),
-            ],
-            metric_tags=interface_tag,
-            metric_type=entity.ProfileMetricType.monotonic_count_and_rate,
-        ),
-        entity.TableMetricsConfig(
-            table=entity.Symbol("1.3.6.1.2.1.2.2", "ifTable"),
-            symbols=[
-                entity.Symbol("1.3.6.1.2.1.2.2.1.9", "ifLastChange"),
-            ],
-            metric_tags=interface_tag,
-            metric_type=entity.ProfileMetricType.monotonic_count,
-        ),
-        entity.TableMetricsConfig(
-            table=entity.Symbol("1.3.6.1.2.1.31.1.1", "ifXTable"),
-            symbols=[
-                entity.Symbol("1.3.6.1.2.1.31.1.1.1.6", "ifHCInOctets"),
-                entity.Symbol("1.3.6.1.2.1.31.1.1.1.10", "ifHCOutOctets"),
-            ],
-            metric_tags=interface_tag,
-            metric_type=entity.ProfileMetricType.monotonic_count_and_rate,
-        ),
-        entity.TableMetricsConfig(
-            table=entity.Symbol("1.3.6.1.2.1.31.1.1", "ifXTable"),
-            symbols=[
-                entity.Symbol("1.3.6.1.2.1.31.1.1.1.15", "ifHighSpeed"),
-            ],
-            metric_tags=interface_tag,
-            metric_type=entity.ProfileMetricType.gauge,
-        ),
+        # entity.TableMetricsConfig(
+        #     table=entity.Symbol("1.3.6.1.2.1.2.2", "ifTable"),
+        #     symbols=[
+        #         entity.Symbol("1.3.6.1.2.1.2.2.1.13", "ifInDiscards"),
+        #         entity.Symbol("1.3.6.1.2.1.2.2.1.14", "ifInErrors"),
+        #         entity.Symbol("1.3.6.1.2.1.2.2.1.19", "ifOutDiscards"),
+        #         entity.Symbol("1.3.6.1.2.1.2.2.1.20", "ifOutErrors"),
+        #     ],
+        #     metric_tags=interface_tag,
+        #     metric_type=entity.ProfileMetricType.monotonic_count_and_rate,
+        # ),
+        # entity.TableMetricsConfig(
+        #     table=entity.Symbol("1.3.6.1.2.1.2.2", "ifTable"),
+        #     symbols=[
+        #         entity.Symbol("1.3.6.1.2.1.2.2.1.9", "ifLastChange"),
+        #     ],
+        #     metric_tags=interface_tag,
+        #     metric_type=entity.ProfileMetricType.monotonic_count,
+        # ),
+        # entity.TableMetricsConfig(
+        #     table=entity.Symbol("1.3.6.1.2.1.31.1.1", "ifXTable"),
+        #     symbols=[
+        #         entity.Symbol("1.3.6.1.2.1.31.1.1.1.6", "ifHCInOctets"),
+        #         entity.Symbol("1.3.6.1.2.1.31.1.1.1.10", "ifHCOutOctets"),
+        #     ],
+        #     metric_tags=interface_tag,
+        #     metric_type=entity.ProfileMetricType.monotonic_count_and_rate,
+        # ),
+        # entity.TableMetricsConfig(
+        #     table=entity.Symbol("1.3.6.1.2.1.31.1.1", "ifXTable"),
+        #     symbols=[
+        #         entity.Symbol("1.3.6.1.2.1.31.1.1.1.15", "ifHighSpeed"),
+        #     ],
+        #     metric_tags=interface_tag,
+        #     metric_type=entity.ProfileMetricType.gauge,
+        # ),
     ]
 
 
 def create_yamaha_rt():
-    path = config.DST_DIR / "yamaha_rt.yml"
+    path = config.DST_DIR / "yamaha_rt.yaml"
     yaml.dump(
         entity.entity_to_dict(
             {
                 "extends": [
                     "_yamaha_base.yml",
-                    # "_generic-if.yaml"
                 ],
+                "metadata": {
+                    "interface": create_interface_meta(),
+                },
                 "sysobjectid": "1.3.6.1.4.1.1182.2.*",
                 "metrics": [
                     entity.MetricsConfig(

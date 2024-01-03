@@ -56,16 +56,14 @@ def create_interface_meta() -> entity.MetadataResource:
 
 
 def create_base():
-    path = config.DST_DIR / "_yamaha_base.yml"
+    path = config.DST_DIR / "_yamaha_base.yaml"
 
     yaml.dump(
         entity.entity_to_dict(
             {
                 "metadata": {
                     "device": create_device_meta(),
-                    "interface": create_interface_meta(),
                 },
-                "metrics": [],
                 "metric_tags": [
                     {
                         "OID": "1.3.6.1.2.1.1.5.0",

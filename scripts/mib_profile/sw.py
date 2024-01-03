@@ -1,33 +1,51 @@
 import yaml
 
-from scripts.mib_profile import common_symbol, config, entity, mib_util
+from scripts.mib_profile import base, common_symbol, config, entity, mib_util
+
+
+def create_interface_meta() -> entity.MetadataResource:
+    fields = {}
+    fields["name"] = entity.MetadataField(symbol=common_symbol.IfTable.ifDescr)
+    fields["description"] = entity.MetadataField(symbol=common_symbol.IfTable.ifDescr)
+
+    fields["admin_status"] = entity.MetadataField(symbol=common_symbol.IfTable.ifAdminStatus)
+    fields["oper_status"] = entity.MetadataField(symbol=common_symbol.IfTable.ifOperStatus)
+    id_tags = [
+        entity.MetadataTag(tag="interface", column=common_symbol.IfTable.ifDescr),
+        entity.MetadataTag(
+            "interface_idx",
+            column=common_symbol.IfTable.ifIndex,
+        ),
+    ]
+
+    return entity.MetadataResource(fields=fields, id_tags=id_tags)
 
 
 def interface_metrics() -> list:
     interface_tag = [
-        entity.MetricTagConfig("interface", column=entity.Symbol("1.3.6.1.2.1.2.2.1.2", "ifDescr")),
+        entity.MetricTagConfig("interface", column=common_symbol.IfTable.ifDescr),
         entity.MetricTagConfig(
             "interface_idx",
-            column=entity.Symbol("1.3.6.1.2.1.2.2.1.1", "ifIndex"),
+            column=common_symbol.IfTable.ifIndex,
         ),
         entity.MetricTagConfig(
             "interface_alias",
-            column=entity.Symbol("1.3.6.1.2.1.31.1.1.1.18", "ifAlias"),
+            column=common_symbol.IfXTable.ifAlias,
         ),
         common_symbol.CommonMetricTagConfig.interface_type,
     ]
     return [
         entity.TableMetricsConfig(
-            table=entity.Symbol("1.3.6.1.2.1.2.2", "ifTable"),
+            table=common_symbol.IfTable.ifTable,
             symbols=[
-                entity.Symbol("1.3.6.1.2.1.2.2.1.5", "ifSpeed"),
-                entity.Symbol("1.3.6.1.2.1.2.2.1.7", "ifAdminStatus"),
-                entity.Symbol("1.3.6.1.2.1.2.2.1.8", "ifOperStatus"),
+                common_symbol.IfTable.ifSpeed,
+                common_symbol.IfTable.ifAdminStatus,
+                common_symbol.IfTable.ifOperStatus,
             ],
             metric_tags=interface_tag,
         ),
         entity.TableMetricsConfig(
-            table=entity.Symbol("1.3.6.1.2.1.2.2", "ifTable"),
+            table=common_symbol.IfTable.ifTable,
             symbols=[
                 entity.Symbol("1.3.6.1.2.1.2.2.1.13", "ifInDiscards"),
                 entity.Symbol("1.3.6.1.2.1.2.2.1.14", "ifInErrors"),
@@ -38,7 +56,7 @@ def interface_metrics() -> list:
             metric_type=entity.ProfileMetricType.monotonic_count_and_rate,
         ),
         entity.TableMetricsConfig(
-            table=entity.Symbol("1.3.6.1.2.1.2.2", "ifTable"),
+            table=common_symbol.IfTable.ifTable,
             symbols=[
                 entity.Symbol("1.3.6.1.2.1.2.2.1.9", "ifLastChange"),
             ],
@@ -66,14 +84,16 @@ def interface_metrics() -> list:
 
 
 def create_yamaha_sw():
-    path = config.DST_DIR / "yamaha_sw.yml"
+    path = config.DST_DIR / "yamaha_sw.yaml"
     yaml.dump(
         entity.entity_to_dict(
             {
                 "extends": [
                     "_yamaha_base.yml",
-                    # "_generic-if.yaml"
                 ],
+                "metadata": {
+                    "interface": create_interface_meta(),
+                },
                 "sysobjectid": "1.3.6.1.4.1.1182.3.*",
                 "metrics": [
                     entity.MetricsConfig(
