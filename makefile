@@ -1,4 +1,4 @@
-SHELL := bash 
+SHELL := bash
 MIB_FILES := $(shell ls src/yamaha-private-mib/*.txt)
 EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
@@ -9,6 +9,10 @@ export PYTHONPATH := $(shell pwd)
 
 init:
 	pip install -r requirements.txt
+
+init_dev:
+	pip install -r requirements_dev.txt
+
 
 snmp:
 	snmpwalk -v 2c -c public -O bentU \
@@ -34,4 +38,7 @@ build:
 	python scripts/create_yml.py;
 
 test:
+	black scripts
+
+test_datadog:
 	datadog-agent check snmp --table --check-rate -l debug
