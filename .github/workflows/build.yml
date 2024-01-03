@@ -1,0 +1,54 @@
+name: Build
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          architecture: x64
+          cache: "pip"
+          cache-dependency-path: |
+            requirements.txt
+            requirements_dev.txt
+
+      - run: pip install -U pip
+      - run: make init
+      - run: make build
+
+      # https://octokit.github.io/rest.js/v20
+      - uses: actions/github-script@v7
+        env:
+          TAG_NAME: ${{ github.ref }}
+          NAME: Release ${{ github.ref }}
+        with:
+          script: |
+            const env = process.env
+            const { data: release } = github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: env.TAG_NAME,
+              name: env.NAME,
+            });
+
+            const files = ["_yamaha_base.yaml", "yamaha_sw.yaml", "yamaha_rt.yaml"]
+
+            for(var file in files){
+              github.rest.repos.uploadReleaseAsset({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.id,
+                name: file,
+                data: fs.readFileSync(`dst/${file}`),
+                origin: release.upload_url
+              });
+            }
