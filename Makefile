@@ -14,6 +14,7 @@ init_dev:
 	pip install -r requirements_dev.txt
 
 
+
 snmp:
 	snmpwalk -v 2c -c public -O bentU \
 	-M $$(net-snmp-config --default-mibdirs):$$(pwd)/src/yamaha-private-mib \
@@ -34,8 +35,11 @@ snmpwalk:
 	-m $(MIBS) \
 	$(DEVICE_IP) $(TARGET)
 
-build:
+build: src/yamaha-private-mib.tar.gz
 	python scripts/create_yml.py;
+
+src/yamaha-private-mib.tar.gz:
+	sh entory_point.sh
 
 test:
 	black scripts
