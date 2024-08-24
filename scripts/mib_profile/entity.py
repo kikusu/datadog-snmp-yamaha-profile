@@ -78,3 +78,15 @@ class TableMetricsConfig(JsonDataClass):
     symbols: list[Symbol]
     metric_type: ProfileMetricType | None = None
     metric_tags: list[MetricTagConfig] | None = None
+
+
+@dataclasses.dataclass
+class TrapConfig(JsonDataClass):
+    mib: str
+    name: str
+
+
+@dataclasses.dataclass
+class TrapVarsConfig(JsonDataClass):
+    name: str
+    enum: dict | None = None
