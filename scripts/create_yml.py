@@ -1,4 +1,4 @@
-from scripts.mib_profile import base, config, rt, sw
+from scripts.mib_profile import base, config, rt, sw, trap
 
 # References
 # ----------
@@ -12,3 +12,4 @@ if __name__ == "__main__":
     base.create_base()
     rt.create_yamaha_rt()
     sw.create_yamaha_sw()
+    trap.create_yamaha_trap()
